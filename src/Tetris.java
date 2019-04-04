@@ -14,7 +14,7 @@ public class Tetris {
             if (finalReply == 0) {
                 JOptionPane.showMessageDialog(null, "Alright, let's go!");
             } else {
-                JOptionPane.showMessageDialog(null, "Fuck you. After all the time I've put into this program. :(");
+                JOptionPane.showMessageDialog(null, "Okej. :(");
                 System.exit(0);
             }
         } else {
@@ -23,7 +23,7 @@ public class Tetris {
 
         JFrame f = new JFrame("ALEXTETRIS");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(20 * 30 + 20, 30 * 30 + 25);
+        f.setSize(620, 900);
         f.setVisible(true);
     }
 }
