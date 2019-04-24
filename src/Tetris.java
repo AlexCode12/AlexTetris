@@ -1,10 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
 
-public class Tetris{
+public class Tetris extends JPanel{
 
     enum Tetrominoes {
-        NoShape(new int[][] { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } }, new Color(0, 0, 0)),
         ZShape(new int[][] { { 0, -1 }, { 0, 0 }, { -1, 0 }, { -1, 1 } }, new Color(204, 102, 102)),
         SShape(new int[][] { { 0, -1 }, { 0, 0 }, { 1, 0 }, { 1, 1 } }, new Color(102, 204, 102)),
         LineShape(new int[][] { { 0, -1 }, { 0, 0 }, { 0, 1 }, { 0, 2 } }, new Color(102, 102, 204)),
@@ -20,8 +19,31 @@ public class Tetris{
             color = c;
         }
     }
+
+    private Color[][] well;
+    private void init() {
+        well = new Color[18][28];
+        for (int i = 0; i < 18; i++) {
+            for (int j = 0; j < 28; j++) {
+                if (i == 0 || i == 11 || j == 22) {
+                    well[i][j] = Color.GRAY;
+                } else {
+                    well[i][j] = Color.BLACK;
+                }
+            }
+        }
+    }
+    public void paintComponent(Graphics g) {
+        g.fillRect(0, 0, 620, 770);
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 23; j++) {
+                g.setColor(well[i][j]);
+                g.fillRect(32*i, 32*j, 31, 31);
+            }
+        }
+    }
         public static void main (String[]args){
-            JOptionPane.showMessageDialog(null, "Welcome to AlexTetris!");
+            JOptionPane.showMessageDialog(null, "Welcome to ALETRIS!");
             int reply = JOptionPane.showConfirmDialog(null, "Do you know how to play?");
             if (reply == 0) {
                 JOptionPane.showMessageDialog(null, "Alright, let's go!");
@@ -39,10 +61,12 @@ public class Tetris{
             } else {
                 System.exit(0);
             }
-            JFrame f = new JFrame("ALEXTETRIS");
+            JFrame f = new JFrame("ALETRIS");
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            f.setSize(620, 900);
+            f.setSize(620, 770);
             f.setVisible(true);
-            f.getContentPane().setBackground(Color.BLACK);
+            final Tetris game = new Tetris();
+            game.init();
+            f.add(game);
         }
     }
