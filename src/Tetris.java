@@ -1,20 +1,16 @@
-/*
-Program gjort i April 2019, med facit i hand tog jag nog vatten över huvudet, men det blev ändå ett helt ok resultat.
- */
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import javax.swing.*;
 
-public class Tetris extends JPanel{
-
+public class Tetris extends JPanel {
     private Point[][][] Piece = {
             /*
-            Denna del är alla bitar som är med.
-            Fyra block är i en bit, och bitarna är uppbyggda som ett koordinatsystem.
-            Jag valde att byta uppbyggnaden av bitarna för att jag inte fick till det med Enum:en.
+            Bitarna genereras
              */
             {
                     { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(3, 1) },
@@ -23,7 +19,6 @@ public class Tetris extends JPanel{
                     { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(1, 3) }
             },
 
-            // J-Piece
             {
                     { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(2, 0) },
                     { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(2, 2) },
@@ -31,7 +26,6 @@ public class Tetris extends JPanel{
                     { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(0, 0) }
             },
 
-            // L-Piece
             {
                     { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(2, 2) },
                     { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(0, 2) },
@@ -39,7 +33,6 @@ public class Tetris extends JPanel{
                     { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(2, 0) }
             },
 
-            // O-Piece
             {
                     { new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1) },
                     { new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1) },
@@ -47,7 +40,6 @@ public class Tetris extends JPanel{
                     { new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1) }
             },
 
-            // S-Piece
             {
                     { new Point(1, 0), new Point(2, 0), new Point(0, 1), new Point(1, 1) },
                     { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 2) },
@@ -55,7 +47,8 @@ public class Tetris extends JPanel{
                     { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 2) }
             },
     };
-    private Color [] Colors = {
+
+    private Color[] colors = {
             Color.cyan, Color.blue, Color.orange, Color.yellow, Color.green,
     };
 
@@ -67,8 +60,8 @@ public class Tetris extends JPanel{
     private long score;
     private Color[][] well;
 
-    // Gör en border runt spelytan + genererar en ny bit
-    private void init() {
+    // Skapar en border runt spelytan samt startar spelet då newPiece annropas
+    private void border() {
         well = new Color[12][24];
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 23; j++) {
@@ -82,7 +75,7 @@ public class Tetris extends JPanel{
         newPiece();
     }
 
-    // Generar en ny bit
+    // Ny del spawnar
     public void newPiece() {
         pieceOrigin = new Point(5, 2);
         rotate = 0;
@@ -95,8 +88,8 @@ public class Tetris extends JPanel{
     }
 
     // Collision detection
-    private boolean collidesAt(int x, int y, int rotate) {
-        for (Point p : Piece[currentPiece][rotate]) {
+    private boolean collisionAt(int x, int y, int rotation) {
+        for (Point p : Piece[currentPiece][rotation]) {
             if (well[p.x + x][p.y + y] != Color.BLACK) {
                 return true;
             }
@@ -104,29 +97,29 @@ public class Tetris extends JPanel{
         return false;
     }
 
-    // Roterar biten med/motsols
+    // Biten kan roteras med/motsols
     public void rotate(int i) {
-        int newRotation = (rotate + i) % 4;
-        if (newRotation < 0) {
-            newRotation = 3;
+        int newRotate = (rotate + i) % 4;
+        if (newRotate < 0) {
+            newRotate = 3;
         }
-        if (!collidesAt(pieceOrigin.x, pieceOrigin.y, newRotation)) {
-            rotate = newRotation;
+        if (!collisionAt(pieceOrigin.x, pieceOrigin.y, newRotate)) {
+            rotate = newRotate;
         }
         repaint();
     }
 
-    // Flyttar biten vänster/höger
+    // Biten kan flyttas till vänster eller höger
     public void move(int i) {
-        if (!collidesAt(pieceOrigin.x + i, pieceOrigin.y, rotate)) {
+        if (!collisionAt(pieceOrigin.x + i, pieceOrigin.y, rotate)) {
             pieceOrigin.x += i;
         }
         repaint();
     }
 
-    // Biten åker ner en rad, alt. fastnar på bitarna
+    // Biten går ner en rad alt. fäster sig på spelytan
     public void dropDown() {
-        if (!collidesAt(pieceOrigin.x, pieceOrigin.y + 1, rotate)) {
+        if (!collisionAt(pieceOrigin.x, pieceOrigin.y + 1, rotate)) {
             pieceOrigin.y += 1;
         } else {
             fixToWell();
@@ -134,13 +127,12 @@ public class Tetris extends JPanel{
         repaint();
     }
 
-    // Biten blir en dell av spelplanen, vilket gör att den kan kännas av
-    // collision detection.
+    // Sätter fast biten på spelplanen och gör den tillgänglig för collision detection.
     public void fixToWell() {
-        for (Point p : Piece[currentPiece][rotate]) {
-            well[pieceOrigin.x + p.x][pieceOrigin.y + p.y] = Colors[currentPiece];
+        for (Point place : Piece[currentPiece][rotate]) {
+            well[pieceOrigin.x + place.x][pieceOrigin.y + place.y] = colors[currentPiece];
         }
-        clearRows();
+        clearTheRows();
         newPiece();
     }
 
@@ -152,8 +144,8 @@ public class Tetris extends JPanel{
         }
     }
 
-    // Tar bort det antal rader som går och ger poäng för dem
-    public void clearRows() {
+    // Tar bort det antal av rader som är fyllda och ger poäng till det
+    public void clearTheRows() {
         boolean gap;
         int numClears = 0;
 
@@ -190,7 +182,7 @@ public class Tetris extends JPanel{
 
     // Ritar ut biten
     private void drawPiece(Graphics g) {
-        g.setColor(Colors[currentPiece]);
+        g.setColor(colors[currentPiece]);
         for (Point p : Piece[currentPiece][rotate]) {
             g.fillRect((p.x + pieceOrigin.x) * 26,
                     (p.y + pieceOrigin.y) * 26,
@@ -201,8 +193,8 @@ public class Tetris extends JPanel{
     @Override
     public void paintComponent(Graphics g)
     {
-        // Ritar ut spelplanen
-        g.fillRect(0, 0, 700, 770);
+        // Paint the well
+        g.fillRect(0, 0, 620, 770);
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 23; j++) {
                 g.setColor(well[i][j]);
@@ -210,12 +202,11 @@ public class Tetris extends JPanel{
             }
         }
         g.setColor(Color.WHITE);
-        g.drawString("SCORE: " + score, 370, 25);
-        g.drawString("Detta spel utvecklades av", 400, 500);
-        g.drawString("Alexander O TE17 under 2019", 400, 520);
+        g.drawString("" + score, 425, 25);
         drawPiece(g);
     }
-    public static void main (String[]args){
+
+    public static void main(String[] args) {
         JOptionPane.showMessageDialog(null, "Welcome to ALETRIS!");
         int reply = JOptionPane.showConfirmDialog(null, "Do you know how to play?");
         if (reply == 0) {
@@ -223,7 +214,7 @@ public class Tetris extends JPanel{
         } else if (reply == 1) {
             JOptionPane.showMessageDialog(null, "Alright, this is how you play.");
             JOptionPane.showMessageDialog(null, "Your goal is to remove as many lines as possible.");
-            JOptionPane.showMessageDialog(null, "Controls: \n Use the arrow keys to rotate \n Press Space to lower the piece quicker");
+            JOptionPane.showMessageDialog(null, "Controls: \n Use the arrowkeys to move/rotate, and the Space key to expedite the decent");
             int finalReply = JOptionPane.showConfirmDialog(null, "Are you sure you want to continue?");
             if (finalReply == 0) {
                 JOptionPane.showMessageDialog(null, "Alright, let's go!");
@@ -238,9 +229,12 @@ public class Tetris extends JPanel{
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setSize(620, 770);
         f.setVisible(true);
+
         final Tetris game = new Tetris();
-        game.init();
+        game.border();
         f.add(game);
+
+        // Kontroller
         f.addKeyListener(new KeyListener() {
             public void keyTyped(KeyEvent e) {
             }
@@ -270,7 +264,7 @@ public class Tetris extends JPanel{
             }
         });
 
-        // Biten åker ned varje sekund
+        // Biten faller en rad på en sekund
         new Thread() {
             @Override public void run() {
                 while (true) {
